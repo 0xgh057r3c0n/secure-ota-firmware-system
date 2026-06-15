@@ -89,13 +89,4 @@ The objective of this project is to architect a highly secure, zero-trust OTA Fi
 *   Introduce monotonic system version logic to ensure target edge devices cannot be forced to downgrade to older, vulnerable firmware packages.
 
 ---
-
-## 🚦 Infotact Mandatory Git & Verification Standards
-
-To pass evaluation, the development workflow must strictly adhere to the following enterprise-grade protocols:
-
-1.  **Continuous Git Contribution:** Compressed histories or massive monolithic pushes during the final week will result in immediate disqualification. Commits must be distributed evenly across all 4 weeks to show daily debugging and architectural effort.
-2.  **Semantic, Present-Tense Commit Messaging:** Commits must use granular wrappers and semantic prefixes (e.g., `feat: implement signing service` or `fix: resolve dashboard rendering crash`).
-3.  **Kanban Project Board Mapping:** The 4-week roadmap must be tracked explicitly via GitHub Issues linked to your Projects tab. Every commit must reference the explicit issue ID it acts upon (e.g., `fixes #1`).
-4.  **Strict Branching Isolation:** Commits straight to `main` or `master` are forbidden. All mechanics must be built out on separate feature branches and merged into production using detailed Pull Requests.
-5.  **Zero Key Leaks:** Hardcoding private keys, access tokens, or connection parameters inside files is grounds for immediate failure. Utilize secure Environment Variables and local configuration parameters exclusively.
+#Thank You
