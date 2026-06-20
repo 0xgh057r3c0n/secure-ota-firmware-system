@@ -1,92 +1,122 @@
 # secure-ota-firmware-system
-Logistics & IoT Edge - Secure OTA Firmware Update & Code Signing Infrastructure
+Logistics & IoT Edge — Secure OTA Firmware Update & Code Signing
 ![Example Image](example.png)
 
-## 📌 Project Overview & Executive Problem Statement
-Supply chain and logistics companies rely heavily on distributed fleets of IoT tracking devices to monitor valuable cargo in transit. However, deploying software updates to these remote edge endpoints introduces a critical security vulnerability. If a malicious actor intercepts an Over-the-Air (OTA) update and pushes a compromised binary, they can hijack the entire fleet. 
+## 📌 Overview
+This repository implements a secure, zero-trust Over-The-Air (OTA) firmware update system for distributed IoT fleets. It includes a FastAPI backend that signs firmware payloads and an administrative Next.js frontend for managing devices, firmware releases, and audit logs.
 
-The objective of this project is to architect a highly secure, zero-trust OTA Firmware Update framework. This repository implements a high-performance **FastAPI backend REST API** paired with an intuitive **Frontend administrative dashboard** to handle user authorization, device tracking, security audit trails, and automated cryptographic signing of firmware updates before fleet distribution.
-
----
-
-## 🛠️ Minimum Viable Product (MVP) Specifications
-
-1.  **Cryptographic Signing Pipeline:** Orchestrated by an internal backend `signing_service`. Asymmetric cryptographic keys stored inside `/keys` are securely processed to compute the firmware's SHA-256 footprint and generate a binding digital signature.
-2.  **Robust FastAPI API Routing:** Implements dedicated modular controllers (`routers/`) to isolate logic workflows, including user authentication, device state registration, firmware metadata management, and systematic security auditing.
-3.  **Administrative UI Management Control:** A clean dashboard providing operational visibility over firmware version increments, live device telemetry, and security failure audit maps.
+Key goals:
+- Protect firmware integrity with SHA-256 hashing and asymmetric signatures.
+- Provide authenticated administrative workflows for firmware release and device management.
+- Maintain immutable audit trails for all security-sensitive actions.
 
 ---
 
-## 📂 Project Directory Structure
+## 🧩 Features (MVP)
 
-```text
+- Cryptographic signing pipeline (`signing_service`) that computes SHA-256 fingerprints and produces signatures using the keys in the `keys/` folder.
+- FastAPI backend with modular `routers/` for authentication, device registration, firmware ingestion, and auditing.
+- Next.js administrative UI (in the `frontend` folder) to upload firmware, view devices, and inspect audit logs.
+
+---
+
+## 🚀 Quick start
+
+Prerequisites:
+- Python 3.10+ (backend)
+- Node.js 18+ and npm (frontend)
+
+Start backend (from repo root):
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+Start frontend (from `frontend`):
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Notes:
+- Keep the private key in `keys/private.pem` secret; do not commit changes to it.
+- The backend uses a local SQLite file `backend/ota.db` for development.
+
+---
+
+## 📂 Repository layout
+
+```
 .
 ├── backend
 │   ├── app
-│   │   ├── config.py             # Application environment and settings configuration
-│   │   ├── database.py           # SQLite database engine connection setup
-│   │   ├── main.py               # Core FastAPI application entrypoint
-│   │   ├── models/               # SQLAlchemy ORM database layer definitions
-│   │   │   ├── audit.py          # Security event and trail logging schema
-│   │   │   ├── device.py         # Fleet tracker device registry schema
-│   │   │   ├── firmware.py       # Firmware binary metadata schema
-│   │   │   └── user.py           # Authentication profile schema
-│   │   ├── routers/              # Modular endpoint API controller layers
-│   │   │   ├── auth.py           # Login, token generation, and verification routes
-│   │   │   ├── device.py         # Fleet tracker telemetry and check-in endpoints
-│   │   │   └── firmware.py       # Ingestion, signing triggers, and download endpoints
-│   │   ├── schemas/              # Pydantic data validation and parsing layers
-│   │   │   └── auth.py           # User credential serialization models
-│   │   ├── services/             # Core internal system logic layers
-│   │   │   ├── hash_service.py   # Baseline payload SHA-256 verification utilities
-│   │   │   └── signing_service.py# Private-key signature generation modules
-│   │   └── utils/                # Auxiliary global security functions
-│   │       └── security.py       # Password hashing and token validation logic
-│   └── ota.db                    # Active relational local database file
-├── frontend                      # Administrative UI management dashboard
-│   ├── public/                   # Static browser assets (favicons, manifest files)
-│   ├── src/                      # Core frontend application source
-│   │   ├── assets/               # Local styles, images, and branding elements
-│   │   ├── components/           # Reusable UI widgets (cards, navigation blocks)
-│   │   │   ├── AuditLogs.jsx     # Visual data table displaying security history logs
-│   │   │   ├── DeviceTable.jsx   # Interactive listing of tracked fleet units
-│   │   │   └── FirmwareForm.jsx  # File uploader mechanism for fresh binaries
-│   │   ├── pages/                # View screens mapping out frontend router targets
-│   │   │   ├── Dashboard.jsx     # Primary control hub aggregating telemetry data
-│   │   │   └── Login.jsx         # Administrative secure portal interface entry
-│   │   ├── services/             # Abstracted infrastructure communications layer
-│   │   │   └── api.js            # Axios/Fetch utility endpoints targeting the backend
-│   │   ├── App.jsx               # Root frontend UI initialization engine
-│   │   └── main.jsx              # Framework lifecycle bootstrap mounting target
-│   ├── package.json              # UI project dependency manifest
-│   └── vite.config.js            # Frontend compilation build orchestrator
+│   │   ├── config.py
+│   │   ├── database.py
+│   │   ├── main.py
+│   │   ├── models/
+│   │   │   ├── audit.py
+│   │   │   ├── device.py
+│   │   │   ├── firmware.py
+│   │   │   └── user.py
+│   │   ├── routers/
+│   │   │   ├── auth.py
+│   │   │   ├── device.py
+│   │   │   ├── firmware.py
+│   │   │   └── logs.py
+│   │   ├── schemas/
+│   │   │   ├── auth.py
+│   │   │   └── dashboard.py
+│   │   ├── services/
+│   │   │   ├── hash_service.py
+│   │   │   └── signing_service.py
+│   │   └── utils/
+│   │       └── security.py
+│   └── ota.db
+├── frontend
+│   ├── app/                # Next.js app directory (pages/components under app/)
+│   ├── public/
+│   ├── package.json
+│   └── README.md
 ├── keys/
-│   ├── private.pem               # Asymmetric private key asset (Keep Secure!)
-│   └── public.pem                # Asymmetric public verification certificate
-├── LICENSE                       # Project distribution license file
-├── README.md                     # Current project documentation manifest
-└── requirements.txt              # Core backend dependencies configuration list
+│   ├── private.pem
+│   └── public.pem
+├── requirements.txt
+└── README.md
 ```
 
 ---
 
-## 🗓️ Four-Week Engineering Roadmap
+## 🗓️ Four-week roadmap (high level)
 
-### 📦 Week 1: PKI Setup and Cryptographic Hashing
-*   Establish the baseline Public Key Infrastructure (PKI) by provisioning asymmetric pairs (`private.pem` and `public.pem`).
-*   Build out core backend services (`hash_service.py` and `signing_service.py`) to generate SHA-256 cryptographic fingerprints and handle binary signature math.
+Week 1 — PKI & signing
+- Provision dev RSA/ECDSA key pair in `keys/` and harden key handling.
+- Implement and test `hash_service` + `signing_service` workflows.
 
-### 🚀 Week 2: Database Layer & API Architecture
-*   Design relational data schemas (`models/`) for tracking system users, device registration arrays, firmware versions, and immutable security audit logs.
-*   Configure the local database engine (`database.py`) using SQLite (`ota.db`) to track system states securely.
+Week 2 — Data & API
+- Finalize SQLAlchemy models and migrations.
+- Harden authentication and token flows in `routers/auth.py`.
 
-### 🛡️ Week 3: Secure REST Endpoints & UI Scaffolding
-*   Implement modular routing blocks (`routers/`) to process edge device handshakes and firmware ingestion streams securely.
-*   Scaffold the frontend component framework and implement the login view along with core dashboard layouts.
+Week 3 — Frontend & integration
+- Finish core Next.js UI flows: login, firmware upload, device list, audit view.
+- Connect UI to backend endpoints and validate signature verification on downloads.
 
-### 🔒 Week 4: Verification, UI Integration & Rollback Protections
-*   Connect the frontend components with the backend API to showcase dynamic tracking metrics, signature statuses, and active log collections.
-*   Introduce monotonic system version logic to ensure target edge devices cannot be forced to downgrade to older, vulnerable firmware packages.
+Week 4 — Verification & hardening
+- Add monotonic version checks and rollback protection.
+- Add end-to-end tests and update documentation.
 
 ---
-#Thank You
+
+## Security & contributing notes
+
+- Do not commit `keys/private.pem`. Use environment-backed secret stores for production.
+- Follow secure key rotation and least-privilege practices when integrating with build pipelines.
+
+---
+
+Thank you — contributions and issues are welcome.
+
