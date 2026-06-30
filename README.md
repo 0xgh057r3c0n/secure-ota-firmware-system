@@ -105,7 +105,10 @@ Week 3 — Frontend & integration
 - Finish core Next.js UI flows: login, firmware upload, device list, audit view.
 - Connect UI to backend endpoints and validate signature verification on downloads.
 
-Week 4 — Verification & hardening
+### 🔒 Week 4: Verification, UI Integration & Rollback Protections
+*   Connect the frontend components with the backend API to showcase dynamic tracking metrics, signature statuses, and active log collections.
+*   Introduce monotonic system version logic to  ensure target edge devices cannot be forced to  downgrade to older, vulnerable firmware packages.
+### 🔒 Week 4 — Verification & hardening
 - Add monotonic version checks and rollback protection.
 - Add end-to-end tests and update documentation.
 
