@@ -4,6 +4,7 @@ from typing import Optional
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
+from fastapi import Request
 from fastapi import status
 from jose import jwt
 from sqlalchemy.orm import Session
@@ -12,6 +13,7 @@ from app.config import settings
 from app.database import get_db
 from app.models.user import User
 from app.schemas.auth import Token, UserCreate, UserLogin
+from app.services.audit_service import create_audit_log, get_actor
 from app.utils.security import hash_password, verify_password
 
 router = APIRouter()
@@ -26,7 +28,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 
 @router.post("/register")
-def register(user: UserCreate, db: Session = Depends(get_db)):
+def register(request: Request, user: UserCreate, db: Session = Depends(get_db)):
     existing_user = (
         db.query(User)
         .filter(User.username == user.username)
@@ -49,6 +51,13 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user_model)
 
+    create_audit_log(
+        db,
+        action="User registered",
+        actor=user_model.username,
+        details=f"username={user_model.username}"
+    )
+
     return {
         "message": "registered",
         "username": user_model.username
@@ -56,7 +65,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=Token)
-def login(user: UserLogin, db: Session = Depends(get_db)):
+def login(request: Request, user: UserLogin, db: Session = Depends(get_db)):
     user_model = (
         db.query(User)
         .filter(User.username == user.username)
@@ -67,6 +76,12 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
         user.password,
         user_model.password_hash
     ):
+        create_audit_log(
+            db,
+            action="Failed login attempt",
+            actor=user.username,
+            details="invalid credentials"
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password",
@@ -75,8 +90,15 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
 
     access_token = create_access_token({"sub": user_model.username})
 
+    create_audit_log(
+        db,
+        action="User login",
+        actor=user_model.username,
+        details="successful login"
+    )
+
     return {
-        "status":"ok"
+        "status": "ok",
         "access_token": access_token,
         "token_type": "bearer"
     }

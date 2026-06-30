@@ -1,0 +1,49 @@
+name: Secure OTA Firmware Signing
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  sign-and-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Generate demo firmware artifact
+        run: |
+          mkdir -p dist
+          printf 'secure ota demo firmware' > dist/firmware.bin
+
+      - name: Sign firmware artifact
+        env:
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from backend.app.services.signing_service import sign_firmware
+          sign_firmware('dist/firmware.bin')
+          print('Signed firmware artifact')
+          PY
+
+      - name: Upload signed artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-firmware
+          path: |
+            dist/firmware.bin
+            dist/firmware.bin.sig

@@ -32,7 +32,7 @@ Start backend (from repo root):
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000
+uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8001
 ```
 
 Start frontend (from `frontend`):
@@ -42,6 +42,8 @@ cd frontend
 npm install
 npm run dev
 ```
+
+If you want to override the backend URL, set `NEXT_PUBLIC_BACKEND_URL` to your backend host before starting the frontend.
 
 Notes:
 - Keep the private key in `keys/private.pem` secret; do not commit changes to it.
@@ -120,6 +122,36 @@ Week 3 — Frontend & integration
 - Follow secure key rotation and least-privilege practices when integrating with build pipelines.
 
 ---
+
+## 🔐 Secure OTA signing workflow
+
+This repository now includes the core MVP flow for secure firmware distribution:
+
+1. A firmware artifact is generated and hashed.
+2. The backend signs the artifact with an RSA private key through [backend/app/services/signing_service.py](backend/app/services/signing_service.py).
+3. The resulting signature is stored alongside the firmware metadata.
+4. A simulated edge agent downloads the payload, recomputes the SHA-256 hash, and verifies the signature with the public key before accepting installation.
+
+### Threat model
+- An attacker who tampers with the firmware binary will fail the hash check.
+- An attacker who tampers with the signature will fail the cryptographic verification step.
+- The device rejects unsigned or invalidly signed payloads and raises a critical security alert.
+
+### CI/CD automation
+- GitHub Actions is configured in [.github/workflows/ci-cd-signing.yml](.github/workflows/ci-cd-signing.yml).
+- The workflow expects the private and public keys to be injected as GitHub Secrets named `PRIVATE_KEY` and `PUBLIC_KEY`.
+- The workflow signs the artifact on tag-based releases and uploads the signed binary as an action artifact.
+
+### Local verification example
+```bash
+python3 -m unittest discover -s backend/tests -p 'test_*.py'
+python3 edge_agent.py --firmware-url file:///tmp/ota-demo/firmware.bin --signature-url file:///tmp/ota-demo/firmware.bin.sig --public-key keys/public.pem
+```
+
+### Key handling guidance
+- Prefer environment-based injection for private keys in CI/CD.
+- Never commit private key material to the repository.
+- Keep the public key on the edge device or in the verification agent assets.
 
 Thank you — contributions and issues are welcome.
 

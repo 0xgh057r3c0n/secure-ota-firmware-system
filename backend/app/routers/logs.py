@@ -8,13 +8,19 @@ router = APIRouter()
 
 @router.get("/")
 def get_logs(db: Session = Depends(get_db)):
-    logs = db.query(AuditLog).all()
+    logs = (
+        db.query(AuditLog)
+        .order_by(AuditLog.timestamp.desc())
+        .all()
+    )
 
     return [
         {
             "id": log.id,
             "action": log.action,
-            "created_at": str(log.created_at)
+            "actor": log.actor,
+            "details": log.details,
+            "timestamp": log.timestamp.isoformat()
         }
         for log in logs
     ]

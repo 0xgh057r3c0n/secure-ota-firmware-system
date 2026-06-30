@@ -14,9 +14,14 @@ export default function FirmwareHistory() {
   }, []);
 
   async function load() {
-    const res = await fetch(`${API_URL}/firmware/all`);
-    const data = await res.json();
-    setItems(data || []);
+    try {
+      const res = await fetch(`${API_URL}/firmware/all`);
+      const data = await res.json().catch(() => []);
+      setItems(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error(error);
+      setItems([]);
+    }
   }
 
   return (
