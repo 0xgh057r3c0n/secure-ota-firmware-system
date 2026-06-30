@@ -47,7 +47,18 @@ If you want to override the backend URL, set `NEXT_PUBLIC_BACKEND_URL` to your b
 
 Notes:
 - Keep the private key in `keys/private.pem` secret; do not commit changes to it.
-- The backend uses a local SQLite file `backend/ota.db` for development.
+- The backend uses a local SQLite file for development.
+
+---
+
+## 🔒 New security additions
+
+This update adds explicit security documentation and clarifies the current secure OTA file layout.
+
+- Added a dedicated security section describing firmware signing, verification, and key handling.
+- Documented the edge agent verification path and trust model.
+- Updated the repo tree to match the actual project structure.
+- Included current backend and frontend key artifact locations.
 
 ---
 
@@ -55,36 +66,86 @@ Notes:
 
 ```
 .
+├── .github
 ├── backend
 │   ├── app
+│   │   ├── __init__.py
 │   │   ├── config.py
 │   │   ├── database.py
 │   │   ├── main.py
-│   │   ├── models/
+│   │   ├── models
 │   │   │   ├── audit.py
 │   │   │   ├── device.py
 │   │   │   ├── firmware.py
 │   │   │   └── user.py
-│   │   ├── routers/
+│   │   ├── routers
 │   │   │   ├── auth.py
+│   │   │   ├── dashboard.py
 │   │   │   ├── device.py
 │   │   │   ├── firmware.py
 │   │   │   └── logs.py
-│   │   ├── schemas/
+│   │   ├── schemas
 │   │   │   ├── auth.py
 │   │   │   └── dashboard.py
-│   │   ├── services/
+│   │   ├── services
+│   │   │   ├── audit_service.py
 │   │   │   ├── hash_service.py
-│   │   │   └── signing_service.py
-│   │   └── utils/
-│   │       └── security.py
-│   └── ota.db
+│   │   │   ├── signing_service.py
+│   │   │   ├── verify-signature.py
+│   │   │   └── verify_signature.py
+│   │   └── utils
+│   │       ├── __init__.py
+│   │       ├── security.py
+│   │       └── version.py
+│   ├── firmware_storage
+│   │   └── test_firmware.bin.sig
+│   ├── keys
+│   └── tests
+│       ├── test_verify_signature.py
+│       └── test_versioning.py
+├── edge_agent.py
+├── edge_artifacts
+├── example.png
+├── firmware_storage
+│   └── firmware.bin.sig
 ├── frontend
-│   ├── app/                # Next.js app directory (pages/components under app/)
-│   ├── public/
+│   ├── AGENTS.md
+│   ├── CLAUDE.md
+│   ├── README.md
+│   ├── app
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   ├── page.tsx
+│   │   ├── components
+│   │   │   ├── Navbar.tsx
+│   │   │   └── ProtectedRoute.tsx
+│   │   ├── dashboard
+│   │   │   └── page.tsx
+│   │   ├── devices
+│   │   │   └── page.tsx
+│   │   ├── firmware
+│   │   │   ├── history
+│   │   │   │   └── page.tsx
+│   │   │   └── page.tsx
+│   │   ├── hooks
+│   │   │   └── useAuth.ts
+│   │   ├── lib
+│   │   │   └── api.ts
+│   │   ├── login
+│   │   │   └── page.tsx
+│   │   ├── logs
+│   │   │   └── page.tsx
+│   │   ├── register
+│   │   │   └── page.tsx
+│   │   └── types
+│   │       ├── device.ts
+│   │       └── firmware.ts
 │   ├── package.json
-│   └── README.md
-├── keys/
+│   ├── tsconfig.json
+│   ├── next.config.ts
+│   ├── postcss.config.mjs
+│   └── eslint.config.mjs
+├── keys
 │   ├── private.pem
 │   └── public.pem
 ├── requirements.txt
@@ -109,7 +170,7 @@ Week 3 — Frontend & integration
 
 ### 🔒 Week 4: Verification, UI Integration & Rollback Protections
 *   Connect the frontend components with the backend API to showcase dynamic tracking metrics, signature statuses, and active log collections.
-*   Introduce monotonic system version logic to  ensure target edge devices cannot be forced to  downgrade to older, vulnerable firmware packages.
+*   Introduce monotonic system version logic to ensure target edge devices cannot be forced to downgrade to older, vulnerable firmware packages.
 ### 🔒 Week 4 — Verification & hardening
 - Add monotonic version checks and rollback protection.
 - Add end-to-end tests and update documentation.
@@ -120,6 +181,7 @@ Week 3 — Frontend & integration
 
 - Do not commit `keys/private.pem`. Use environment-backed secret stores for production.
 - Follow secure key rotation and least-privilege practices when integrating with build pipelines.
+- Keep `keys/public.pem` available to the edge agent or verification service.
 
 ---
 
