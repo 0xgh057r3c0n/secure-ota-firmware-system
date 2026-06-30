@@ -1,6 +1,6 @@
 # secure-ota-firmware-system
 Logistics & IoT Edge — Secure OTA Firmware Update & Code Signing
-![Example Image](example.png)
+![Example Image](exam.png)
 
 ## 📌 Overview
 This repository implements a secure, zero-trust Over-The-Air (OTA) firmware update system for distributed IoT fleets. It includes a FastAPI backend that signs firmware payloads and an administrative Next.js frontend for managing devices, firmware releases, and audit logs.
