@@ -8,6 +8,7 @@ import { API_URL } from "../lib/api";
 export default function RegisterPage() {
   const router = useRouter();
 
+  const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -16,12 +17,34 @@ export default function RegisterPage() {
   async function handleRegister(e?: React.FormEvent) {
     e?.preventDefault();
     setMessage(null);
+
+    if (!email || !username || !password) {
+      setMessage("Email, username, and password are required.");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setMessage("Please enter a valid email address.");
+      return;
+    }
+
+    if (username.length < 3 || username.length > 32) {
+      setMessage("Username must be between 3 and 32 characters.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setMessage("Password must be at least 8 characters long.");
+      return;
+    }
+
     try {
       setLoading(true);
       const res = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ email, username, password })
       });
 
       const data = await res.json().catch(() => null);
@@ -52,6 +75,14 @@ export default function RegisterPage() {
             placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+          />
+
+          <input
+            className="w-full border p-2 mb-3"
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
 
           <input

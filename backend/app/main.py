@@ -24,9 +24,10 @@ app.add_middleware(
         "http://127.0.0.1:3001",
         "http://192.168.29.95:3001"
     ],
+    allow_origin_regex=r"^(https?://(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+)(:\d+)?|null)$",
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"]
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
 )
 
 @app.on_event("startup")

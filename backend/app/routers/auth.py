@@ -7,6 +7,7 @@ from fastapi import HTTPException
 from fastapi import Request
 from fastapi import status
 from jose import jwt
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -29,26 +30,45 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 @router.post("/register")
 def register(request: Request, user: UserCreate, db: Session = Depends(get_db)):
-    existing_user = (
+    existing_username = (
         db.query(User)
         .filter(User.username == user.username)
         .first()
     )
 
-    if existing_user:
+    if existing_username:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username already exists"
         )
 
+    existing_email = (
+        db.query(User)
+        .filter(User.email == user.email)
+        .first()
+    )
+
+    if existing_email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already exists"
+        )
+
     user_model = User(
         username=user.username,
-        email="",
+        email=user.email,
         password_hash=hash_password(user.password)
     )
 
     db.add(user_model)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Registration failed due to duplicate credentials"
+        )
     db.refresh(user_model)
 
     create_audit_log(
