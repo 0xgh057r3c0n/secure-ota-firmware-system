@@ -64,93 +64,110 @@ This update adds explicit security documentation and clarifies the current secur
 
 ## 📂 Repository layout
 
-```
+This project is organized into three main areas: the FastAPI backend, the Next.js admin frontend, and the shared security/firmware assets. The tree below includes the core source files and omits local build folders such as .venv, node_modules, .next, and Python cache directories for clarity.
+
+```text
 .
-├── .github
-├── backend
-│   ├── app
+├── .github/
+│   └── workflows/
+│       └── ci-cd-signing.yml
+├── backend/
+│   ├── app/
 │   │   ├── __init__.py
 │   │   ├── config.py
 │   │   ├── database.py
 │   │   ├── main.py
-│   │   ├── models
+│   │   ├── dependencies/
+│   │   │   └── auth.py
+│   │   ├── models/
 │   │   │   ├── audit.py
 │   │   │   ├── device.py
 │   │   │   ├── firmware.py
 │   │   │   └── user.py
-│   │   ├── routers
+│   │   ├── routers/
 │   │   │   ├── auth.py
 │   │   │   ├── dashboard.py
 │   │   │   ├── device.py
 │   │   │   ├── firmware.py
 │   │   │   └── logs.py
-│   │   ├── schemas
+│   │   ├── schemas/
 │   │   │   ├── auth.py
-│   │   │   └── dashboard.py
-│   │   ├── services
+│   │   │   ├── dashboard.py
+│   │   │   └── device.py
+│   │   ├── services/
 │   │   │   ├── audit_service.py
 │   │   │   ├── hash_service.py
 │   │   │   ├── signing_service.py
-│   │   │   ├── verify-signature.py
-│   │   │   └── verify_signature.py
-│   │   └── utils
+│   │   │   ├── verify_signature.py
+│   │   │   └── verify-signature.py
+│   │   └── utils/
 │   │       ├── __init__.py
 │   │       ├── security.py
 │   │       └── version.py
-│   ├── firmware_storage
+│   ├── firmware_storage/
+│   │   ├── test_firmware.bin
 │   │   └── test_firmware.bin.sig
-│   ├── keys
-│   └── tests
-│       ├── test_verify_signature.py
-│       └── test_versioning.py
+│   ├── keys/
+│   │   └── public.pem
+│   ├── tests/
+│   │   ├── test_security.py
+│   │   ├── test_verify_signature.py
+│   │   └── test_versioning.py
+│   └── .env
 ├── edge_agent.py
-├── edge_artifacts
-├── example.png
-├── firmware_storage
-│   └── firmware.bin.sig
-├── frontend
+├── firmware_storage/
+│   ├── firmware.bin
+│   ├── firmware.bin.sig
+│   ├── test_firmware.bin
+│   └── test_firmware.bin.sig
+├── frontend/
+│   ├── app/
+│   │   ├── components/
+│   │   │   ├── AppShell.tsx
+│   │   │   ├── Navbar.tsx
+│   │   │   └── ProtectedRoute.tsx
+│   │   ├── dashboard/page.tsx
+│   │   ├── devices/page.tsx
+│   │   ├── firmware/page.tsx
+│   │   ├── firmware/history/page.tsx
+│   │   ├── hooks/useAuth.ts
+│   │   ├── lib/api.ts
+│   │   ├── login/page.tsx
+│   │   ├── logs/page.tsx
+│   │   ├── page.tsx
+│   │   ├── register/page.tsx
+│   │   ├── types/device.ts
+│   │   ├── types/firmware.ts
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   ├── public/
+│   ├── services/api.ts
 │   ├── AGENTS.md
 │   ├── CLAUDE.md
 │   ├── README.md
-│   ├── app
-│   │   ├── globals.css
-│   │   ├── layout.tsx
-│   │   ├── page.tsx
-│   │   ├── components
-│   │   │   ├── Navbar.tsx
-│   │   │   └── ProtectedRoute.tsx
-│   │   ├── dashboard
-│   │   │   └── page.tsx
-│   │   ├── devices
-│   │   │   └── page.tsx
-│   │   ├── firmware
-│   │   │   ├── history
-│   │   │   │   └── page.tsx
-│   │   │   └── page.tsx
-│   │   ├── hooks
-│   │   │   └── useAuth.ts
-│   │   ├── lib
-│   │   │   └── api.ts
-│   │   ├── login
-│   │   │   └── page.tsx
-│   │   ├── logs
-│   │   │   └── page.tsx
-│   │   ├── register
-│   │   │   └── page.tsx
-│   │   └── types
-│   │       ├── device.ts
-│   │       └── firmware.ts
-│   ├── package.json
-│   ├── tsconfig.json
+│   ├── eslint.config.mjs
+│   ├── next-env.d.ts
 │   ├── next.config.ts
+│   ├── package.json
+│   ├── package-lock.json
 │   ├── postcss.config.mjs
-│   └── eslint.config.mjs
-├── keys
+│   └── tsconfig.json
+├── keys/
 │   ├── private.pem
 │   └── public.pem
+├── .gitignore
+├── LICENSE
+├── README.md
 ├── requirements.txt
-└── README.md
+└── test_firmware.bin
 ```
+
+### What each part does
+- Backend: the FastAPI application that handles authentication, device and firmware data, signature verification, and audit logs.
+- Frontend: the Next.js dashboard used to manage devices, firmware releases, and activity logs from the browser.
+- Security assets: the cryptographic keys and signed firmware artifacts used by the backend and the edge agent.
+- CI/CD: the workflow in [.github/workflows/ci-cd-signing.yml](.github/workflows/ci-cd-signing.yml) automates signing and release packaging.
 
 ---
 
