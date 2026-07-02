@@ -11,4 +11,4 @@ class User(Base):
     email = Column(String, unique=True)
     username = Column(String, unique=True)
     password_hash = Column(String)
-    role = Column(String, default="admin")
+    role = Column(String, default="user")

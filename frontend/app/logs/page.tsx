@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import ProtectedRoute from "../components/ProtectedRoute";
 import { apiGet } from "../lib/api";
 
 interface AuditLogItem {
@@ -36,6 +37,7 @@ export default function LogsPage() {
   }, []);
 
   return (
+    <ProtectedRoute adminOnly>
     <main className="p-8">
       <h1 className="text-3xl font-bold">Audit Logs</h1>
 
@@ -67,5 +69,6 @@ export default function LogsPage() {
         </div>
       )}
     </main>
+    </ProtectedRoute>
   );
 }

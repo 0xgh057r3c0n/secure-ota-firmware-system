@@ -1,5 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.database import Base, SessionLocal, engine
 from app.models.user import User
@@ -14,6 +15,15 @@ app = FastAPI(
     title="Firmware Management API",
     version="1.0.0"
 )
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["x-content-type-options"] = "nosniff"
+    response.headers["referrer-policy"] = "strict-origin-when-cross-origin"
+    response.headers["x-frame-options"] = "DENY"
+    response.headers["permissions-policy"] = "geolocation=(), microphone=()"
+    return response
 
 app.add_middleware(
     CORSMiddleware,
@@ -40,7 +50,8 @@ def startup_event():
                 User(
                     username="admin",
                     email="admin@example.com",
-                    password_hash=hash_password("admin")
+                    password_hash=hash_password("admin"),
+                    role="admin"
                 )
             )
             db.commit()

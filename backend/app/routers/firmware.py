@@ -1,5 +1,5 @@
-import shutil
 import os
+import shutil
 
 from fastapi import APIRouter
 from fastapi import UploadFile
@@ -7,19 +7,19 @@ from fastapi import File
 from fastapi import Depends
 from fastapi import Form
 from fastapi import Request
+from fastapi.responses import FileResponse
 
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.dependencies.auth import get_current_user
 from app.models.firmware import Firmware
 from app.services.audit_service import create_audit_log, get_actor
 from app.services.hash_service import calculate_sha256
 from app.services.signing_service import sign_firmware
 from app.utils.version import generate_release_version
 
-router = APIRouter(
-    tags=["firmware"]
-)
+router = APIRouter()
 
 
 @router.post("/upload")
@@ -27,7 +27,8 @@ async def upload_firmware(
     request: Request,
     version: str = Form(...),
     file: UploadFile = File(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
 
     storage_dir = "firmware_storage"
@@ -78,7 +79,8 @@ async def upload_firmware(
 
 @router.get("/latest")
 def latest_firmware(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
 
     latest = (
@@ -112,7 +114,8 @@ def latest_firmware(
 
 @router.get("/all")
 def all_firmware(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
 
     rows = (
@@ -124,3 +127,23 @@ def all_firmware(
     )
 
     return rows
+
+
+@router.get("/download/{firmware_id}")
+def download_firmware(
+    firmware_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    firmware = db.query(Firmware).filter(Firmware.id == firmware_id).first()
+    if not firmware:
+        return {"detail": "Firmware not found"}
+
+    if not os.path.exists(firmware.firmware_path):
+        return {"detail": "Firmware file missing on server"}
+
+    return FileResponse(
+        path=firmware.firmware_path,
+        filename=os.path.basename(firmware.firmware_path),
+        media_type="application/octet-stream"
+    )
