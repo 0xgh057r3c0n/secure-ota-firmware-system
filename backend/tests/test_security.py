@@ -1,4 +1,5 @@
 import sys
+import uuid
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -28,12 +29,12 @@ def test_logs_requires_authentication():
 
 
 def test_new_registration_defaults_to_user_role():
-    username = "newuser"
+    username = f"newuser_{uuid.uuid4().hex[:8]}"
     password = "Password123"
     response = client.post(
         "/auth/register",
         json={
-            "email": "newuser@example.com",
+            "email": f"{username}@example.com",
             "username": username,
             "password": password,
         },
@@ -56,12 +57,12 @@ def test_new_registration_defaults_to_user_role():
 
 
 def test_non_admin_cannot_access_admin_logs():
-    username = "limiteduser"
+    username = f"limiteduser_{uuid.uuid4().hex[:8]}"
     password = "Password123"
     client.post(
         "/auth/register",
         json={
-            "email": "limiteduser@example.com",
+            "email": f"{username}@example.com",
             "username": username,
             "password": password,
         },

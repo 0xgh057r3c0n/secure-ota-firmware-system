@@ -45,7 +45,8 @@ def startup_event():
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
-        if db.query(User).count() == 0:
+        admin_user = db.query(User).filter(User.username == "admin").first()
+        if not admin_user:
             db.add(
                 User(
                     username="admin",
